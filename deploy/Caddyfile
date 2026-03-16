@@ -1,0 +1,14 @@
+willc.pro {
+    # Serve Jekyll static files if they exist on disk
+    root * /var/www/jekyll
+
+    @static file
+    handle @static {
+        file_server
+    }
+
+    # Everything else goes to Willinks (.NET app)
+    handle {
+        reverse_proxy localhost:5000
+    }
+}
