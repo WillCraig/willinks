@@ -1,0 +1,8 @@
+bin/
+obj/
+*.user
+.vs/
+.idea/
+.env
+appsettings.Development.json
+.claude/

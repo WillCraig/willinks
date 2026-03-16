@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Willinks Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; background: #f5f5f5; color: #1a1a1a; }
+    h1 { margin-bottom: 0.25rem; }
+    .card { background: #fff; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: .25rem; }
+    input { width: 100%; padding: .5rem .75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; margin-bottom: .75rem; }
+    button { padding: .5rem 1.25rem; border: none; border-radius: 6px; cursor: pointer; font-size: .875rem; font-weight: 600; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-copy { background: #e5e7eb; color: #374151; }
+    .btn-copy:hover { background: #d1d5db; }
+    table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+    th { text-align: left; padding: .5rem .75rem; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
+    td { padding: .5rem .75rem; border-bottom: 1px solid #f3f4f6; vertical-align: middle; word-break: break-all; }
+    tr:last-child td { border-bottom: none; }
+    .status { font-size: .75rem; color: #6b7280; margin-top: .5rem; min-height: 1.25rem; }
+    .error { color: #dc2626; }
+    .success { color: #16a34a; }
+    .row { display: flex; gap: .75rem; }
+    .row input { margin-bottom: 0; }
+    .row .flex1 { flex: 1; }
+    #api-key-section { display: flex; gap: .5rem; align-items: flex-end; }
+    #api-key-section input { margin-bottom: 0; }
+  </style>
+</head>
+<body>
+  <h1>Willinks</h1>
+  <p style="color:#6b7280;margin-top:0">Personal URL Shortener</p>
+
+  <div class="card">
+    <label for="apiKey">API Key</label>
+    <div id="api-key-section">
+      <input id="apiKey" type="password" placeholder="Enter your API key" />
+      <button class="btn-primary" onclick="saveKey()">Save</button>
+    </div>
+    <div class="status" id="key-status"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Create Short Link</h2>
+    <label for="destination">Destination URL</label>
+    <input id="destination" type="url" placeholder="https://example.com/very/long/url" />
+    <div class="row">
+      <div class="flex1">
+        <label for="slug">Custom Slug (optional)</label>
+        <input id="slug" type="text" placeholder="my-link" />
+      </div>
+      <div class="flex1">
+        <label for="expiresAt">Expires At (optional)</label>
+        <input id="expiresAt" type="datetime-local" />
+      </div>
+    </div>
+    <button class="btn-primary" onclick="createLink()">Create Link</button>
+    <div class="status" id="create-status"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h2 style="margin:0">Links</h2>
+      <button class="btn-copy" onclick="loadLinks()">Refresh</button>
+    </div>
+    <div id="links-container"><p style="color:#6b7280">Save your API key and click Refresh.</p></div>
+  </div>
+
+  <script>
+    const API_KEY_STORAGE = 'willinks_api_key';
+
+    function getKey() { return localStorage.getItem(API_KEY_STORAGE) || ''; }
+
+    function saveKey() {
+      const key = document.getElementById('apiKey').value.trim();
+      if (!key) { setStatus('key-status', 'Enter a key.', true); return; }
+      localStorage.setItem(API_KEY_STORAGE, key);
+      setStatus('key-status', 'Saved!', false);
+      loadLinks();
+    }
+
+    function setStatus(id, msg, isError) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.className = 'status ' + (isError ? 'error' : 'success');
+    }
+
+    async function apiFetch(path, options = {}) {
+      const key = getKey();
+      const res = await fetch(path, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'X-Api-Key': key, ...(options.headers || {}) }
+      });
+      return res;
+    }
+
+    async function loadLinks() {
+      const container = document.getElementById('links-container');
+      container.innerHTML = '<p style="color:#6b7280">Loading…</p>';
+      try {
+        const res = await apiFetch('/api/links');
+        if (!res.ok) { container.innerHTML = `<p class="error">Error ${res.status}: ${res.statusText}</p>`; return; }
+        const links = await res.json();
+        if (!links.length) { container.innerHTML = '<p style="color:#6b7280">No links yet.</p>'; return; }
+        const origin = window.location.origin;
+        container.innerHTML = `
+          <table>
+            <thead><tr><th>Slug</th><th>Destination</th><th>Clicks</th><th>Expires</th><th>Actions</th></tr></thead>
+            <tbody>
+              ${links.map(l => `
+                <tr>
+                  <td><a href="${origin}/${l.slug}" target="_blank">${l.slug}</a></td>
+                  <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.destination}">${l.destination}</td>
+                  <td>${l.clickCount}</td>
+                  <td>${l.expiresAt ? new Date(l.expiresAt).toLocaleDateString() : '—'}</td>
+                  <td style="white-space:nowrap">
+                    <button class="btn-copy" onclick="copyLink('${origin}/${l.slug}')">Copy</button>
+                    <button class="btn-danger" onclick="deleteLink('${l.slug}')">Delete</button>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`;
+      } catch (e) {
+        container.innerHTML = `<p class="error">Failed to load links: ${e.message}</p>`;
+      }
+    }
+
+    async function createLink() {
+      const destination = document.getElementById('destination').value.trim();
+      const slug = document.getElementById('slug').value.trim() || null;
+      const expiresAtRaw = document.getElementById('expiresAt').value;
+      const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).toISOString() : null;
+
+      if (!destination) { setStatus('create-status', 'Destination is required.', true); return; }
+
+      try {
+        const res = await apiFetch('/api/links', {
+          method: 'POST',
+          body: JSON.stringify({ destination, slug, expiresAt })
+        });
+        if (!res.ok) {
+          const text = await res.text();
+          setStatus('create-status', `Error ${res.status}: ${text}`, true);
+          return;
+        }
+        const created = await res.json();
+        setStatus('create-status', `Created! Short URL: ${window.location.origin}/${created.slug}`, false);
+        document.getElementById('destination').value = '';
+        document.getElementById('slug').value = '';
+        document.getElementById('expiresAt').value = '';
+        loadLinks();
+      } catch (e) {
+        setStatus('create-status', `Failed: ${e.message}`, true);
+      }
+    }
+
+    async function deleteLink(slug) {
+      if (!confirm(`Delete /${slug}?`)) return;
+      try {
+        const res = await apiFetch(`/api/links/${slug}`, { method: 'DELETE' });
+        if (!res.ok) { alert(`Error ${res.status}`); return; }
+        loadLinks();
+      } catch (e) {
+        alert(`Failed: ${e.message}`);
+      }
+    }
+
+    function copyLink(url) {
+      navigator.clipboard.writeText(url).then(() => alert('Copied!'));
+    }
+
+    // Pre-fill API key from storage
+    const saved = getKey();
+    if (saved) {
+      document.getElementById('apiKey').value = saved;
+      loadLinks();
+    }
+  </script>
+</body>
+</html>
