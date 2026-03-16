@@ -14,4 +14,4 @@ jobs:
           host: ${{ secrets.DROPLET_HOST }}
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: /opt/willinks-src/deploy/deploy.sh
+          script: bash /opt/willinks-src/deploy/deploy.sh
