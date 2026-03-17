@@ -20,7 +20,7 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
-app.MapGet("/linkadmin", (IWebHostEnvironment env) =>
+app.MapGet("/admin", (IWebHostEnvironment env) =>
     Results.File(Path.Combine(env.WebRootPath, "index.html"), "text/html"));
 
 // API group with API key auth
