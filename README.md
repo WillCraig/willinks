@@ -41,10 +41,10 @@ On the droplet, environment variables (`DATABASE_URL`, `API_KEY`) should be set 
 
 ## Configuration
 
-| Variable       | Description                                   |
-| -------------- | --------------------------------------------- |
-| `DATABASE_URL` | PostgreSQL connection string                  |
-| `API_KEY`      | Shared secret for authenticating API requests |
+| Variable       | Description                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| `DATABASE_URL` | SQLite connection string (e.g. `"Data Source=/var/lib/willinks/willinks.db;Cache=Shared"` — quote when placing in a systemd env file, since the value contains a space) |
+| `API_KEY`      | Shared secret for authenticating API requests                                             |
 
 ---
 
@@ -76,6 +76,6 @@ All write endpoints require the `X-Api-Key` header.
 ## Tech Stack
 
 - **Runtime**: .NET 9
-- **Database**: PostgreSQL
+- **Database**: SQLite (file-based, auto-provisioned on first run)
 - **ORM**: Dapper
 - **Frontend**: Vanilla JS (no build step)

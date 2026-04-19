@@ -6,15 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration["DATABASE_URL"]
     ?? throw new InvalidOperationException("DATABASE_URL is not configured.");
 
-// Convert postgres:// URI to Npgsql key=value format if needed
-if (connectionString.StartsWith("postgresql://") || connectionString.StartsWith("postgres://"))
-{
-    var uri = new Uri(connectionString);
-    var userInfo = uri.UserInfo.Split(':');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]}";
-}
-
-builder.Services.AddSingleton(new LinkService(connectionString));
+var linkService = new LinkService(connectionString);
+await linkService.InitializeAsync();
+builder.Services.AddSingleton(linkService);
 
 var app = builder.Build();
 

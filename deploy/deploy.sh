@@ -3,6 +3,11 @@ set -e
 
 REPO_DIR=/opt/willinks-src
 PUBLISH_DIR=/opt/willinks
+DATA_DIR=/var/lib/willinks
+
+echo ">>> Ensuring data directory exists..."
+sudo mkdir -p "$DATA_DIR"
+sudo chown www-data:www-data "$DATA_DIR"
 
 echo ">>> Pulling latest..."
 cd "$REPO_DIR"

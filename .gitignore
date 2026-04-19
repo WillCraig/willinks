@@ -6,3 +6,6 @@ obj/
 .env
 appsettings.Development.json
 .claude/
+*.db
+*.db-shm
+*.db-wal
