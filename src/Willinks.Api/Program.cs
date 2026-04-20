@@ -22,21 +22,32 @@ if (connectionString.StartsWith("sqlite://"))
 }
 
 builder.Services.AddSingleton(new LinkService(connectionString));
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
 app.UseStaticFiles();
 
-app.MapGet("/admin", (IWebHostEnvironment env) =>
-    Results.File(Path.Combine(env.WebRootPath, "index.html"), "text/html"));
+// Middleware to detect subdomain and route accordingly
+app.Use(async (context, next) =>
+{
+    var host = context.Request.Host.Host;
+    var isLinksSubdomain = host.StartsWith("links.");
+    context.Items["IsLinksSubdomain"] = isLinksSubdomain;
+    await next(context);
+});
 
-// API group with API key auth
+// Razor Pages for admin dashboard (links.willc.pro)
+// The Index.cshtml.cs will check subdomain and return 404 if not on links domain
+app.MapRazorPages();
+
+// API group with API key auth (willc.pro/api)
 var api = app.MapGroup("/api")
     .AddEndpointFilter<ApiKeyFilter>();
 
 api.MapLinksEndpoints();
 
-// Public redirect routes (must be last)
+// Public redirect routes (works on both domains, must be last)
 app.MapRedirectEndpoints();
 
 app.Run();
