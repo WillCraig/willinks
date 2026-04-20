@@ -1,3 +1,9 @@
+# Admin dashboard subdomain
+links.willc.pro {
+    reverse_proxy localhost:5000
+}
+
+# Main domain (public redirects)
 willc.pro {
     # Serve Jekyll static files if they exist on disk
     root * /var/www/jekyll
