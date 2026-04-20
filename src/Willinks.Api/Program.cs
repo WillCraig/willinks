@@ -14,6 +14,13 @@ if (connectionString.StartsWith("postgresql://") || connectionString.StartsWith(
     connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]}";
 }
 
+// Convert sqlite:// URI to Data Source path
+if (connectionString.StartsWith("sqlite://"))
+{
+    var uri = new Uri(connectionString);
+    connectionString = $"Data Source={uri.AbsolutePath.TrimStart('/')}";
+}
+
 builder.Services.AddSingleton(new LinkService(connectionString));
 
 var app = builder.Build();
