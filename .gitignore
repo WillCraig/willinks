@@ -1,8 +1,60 @@
+# Build artifacts
 bin/
 obj/
-*.user
+publish/
+
+# SQLite databases and related files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Visual Studio
 .vs/
+.vscode/
+*.user
+*.suo
+*.sln.iml
+*.csproj.user
+.ReSharper/
+*.resharper
+*.resharper.user
+
+# JetBrains IDEs
 .idea/
-.env
+.rider/
+*.sln.iml
+
+# User-specific files
 appsettings.Development.json
+appsettings.Local.json
+*.local.json
+
+# Environment variables
+.env
+.env.local
+
+# Build outputs
+*.dll
+*.exe
+*.pdb
+
+# OS-specific
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+
+# NuGet
+packages/
+.nuget/
+
+# Miscellaneous
 .claude/
+node_modules/
+dist/
+.cache/
