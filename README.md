@@ -1,6 +1,6 @@
 # Willinks
 
-![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
 
 > A self-hosted personal URL shortener with click tracking and expiration.
 
@@ -39,11 +39,25 @@ On the droplet, environment variables (`DATABASE_URL`, `API_KEY`) should be set 
 
 ---
 
+## Local Development
+
+```bash
+# Create local database
+sqlite3 willinks.db < deploy/willinks.db.sql
+
+# Run the app
+dotnet run --project src/Willinks.Api
+```
+
+The app will be available at `http://localhost:5000`.
+
+---
+
 ## Configuration
 
 | Variable       | Description                                   |
 | -------------- | --------------------------------------------- |
-| `DATABASE_URL` | PostgreSQL connection string                  |
+| `DATABASE_URL` | SQLite connection string (e.g., `Data Source=willinks.db`) |
 | `API_KEY`      | Shared secret for authenticating API requests |
 
 ---
@@ -75,7 +89,7 @@ All write endpoints require the `X-Api-Key` header.
 
 ## Tech Stack
 
-- **Runtime**: .NET 9
-- **Database**: PostgreSQL
+- **Runtime**: .NET 10
+- **Database**: SQLite (self-contained, file-based)
 - **ORM**: Dapper
 - **Frontend**: Vanilla JS (no build step)
