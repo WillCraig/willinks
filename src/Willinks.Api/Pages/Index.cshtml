@@ -1,0 +1,456 @@
+@page
+@using Willinks.Api.Pages
+@model IndexModel
+@{
+    ViewData["Title"] = "Willinks Admin";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Willinks Admin</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            background: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: .875rem 2rem;
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        .header-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: -.02em;
+        }
+        .header-brand span { color: #3b82f6; }
+        .header-tagline {
+            font-size: .8rem;
+            color: #64748b;
+        }
+
+        /* Main content */
+        .main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Stat cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+        }
+        .stat-label {
+            font-size: .75rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: .375rem;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            line-height: 1;
+        }
+
+        /* API Key settings row */
+        .settings-row {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .settings-row label {
+            font-size: .8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            white-space: nowrap;
+            margin: 0;
+        }
+        .settings-row input {
+            flex: 1;
+            min-width: 200px;
+            margin: 0;
+        }
+        .settings-row .status { margin: 0; }
+
+        /* Card */
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin: 0 0 1.25rem 0;
+        }
+
+        /* Form elements */
+        label {
+            display: block;
+            font-size: .75rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: .3rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        input {
+            width: 100%;
+            padding: .5rem .75rem;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: .9rem;
+            color: #f1f5f9;
+            outline: none;
+            transition: border-color .15s;
+        }
+        input:focus { border-color: #3b82f6; }
+        input::placeholder { color: #475569; }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-row .field { flex: 1; }
+        .form-row input { margin-bottom: 0; }
+
+        .form-top { margin-bottom: 1rem; }
+        .form-top input { margin-bottom: 0; }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            margin-top: .75rem;
+        }
+
+        /* Buttons */
+        button {
+            padding: .45rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .85rem;
+            font-weight: 600;
+            transition: background .15s, opacity .15s;
+        }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: #fff; font-size: .75rem; padding: .3rem .7rem; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-ghost {
+            background: transparent;
+            color: #64748b;
+            border: 1px solid #334155;
+            font-size: .75rem;
+            padding: .3rem .7rem;
+        }
+        .btn-ghost:hover { background: #334155; color: #f1f5f9; }
+
+        /* Status */
+        .status { font-size: .8rem; color: #64748b; min-height: 1.2rem; }
+        .error { color: #f87171; }
+        .success { color: #4ade80; }
+
+        /* Table */
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+        th {
+            text-align: left;
+            padding: .5rem .75rem;
+            border-bottom: 1px solid #334155;
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            white-space: nowrap;
+        }
+        td {
+            padding: .6rem .75rem;
+            border-bottom: 1px solid #1e293b;
+            vertical-align: middle;
+            word-break: break-all;
+        }
+        tbody tr { background: #1e293b; }
+        tbody tr:hover { background: #263354; }
+        tbody tr:last-child td { border-bottom: none; }
+        td a { color: #60a5fa; text-decoration: none; }
+        td a:hover { text-decoration: underline; }
+
+        /* Toast */
+        #toast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: .6rem 1rem;
+            font-size: .85rem;
+            color: #4ade80;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity .2s, transform .2s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-brand"><span>◆</span> Willinks</div>
+        <div class="header-tagline">Personal URL Shortener</div>
+    </header>
+
+    <div id="toast"></div>
+
+    <main class="main">
+
+        <!-- Stat cards -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-label">Total Links</div>
+                <div class="stat-value" id="stat-total">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Clicks</div>
+                <div class="stat-value" id="stat-clicks">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Expiring Soon</div>
+                <div class="stat-value" id="stat-expiring">—</div>
+            </div>
+        </div>
+
+        <!-- API Key settings row -->
+        <div class="settings-row">
+            <label for="apiKey">API Key</label>
+            <input id="apiKey" type="password" placeholder="Enter your API key" />
+            <button class="btn-primary" onclick="saveKey()">Save</button>
+            <div class="status" id="key-status"></div>
+        </div>
+
+        <!-- Create Link card -->
+        <div class="card">
+            <h2 class="card-title">Create Short Link</h2>
+            <div class="form-top">
+                <label for="destination">Destination URL</label>
+                <input id="destination" type="url" placeholder="https://example.com/very/long/url" />
+            </div>
+            <div class="form-row">
+                <div class="field">
+                    <label for="slug">Custom Slug (optional)</label>
+                    <input id="slug" type="text" placeholder="my-link" />
+                </div>
+                <div class="field">
+                    <label for="expiresAt">Expires At (optional)</label>
+                    <input id="expiresAt" type="datetime-local" />
+                </div>
+            </div>
+            <div class="form-actions">
+                <div class="status" id="create-status"></div>
+                <button class="btn-primary" onclick="createLink()">Create Link</button>
+            </div>
+        </div>
+
+        <!-- Links table card -->
+        <div class="card">
+            <div class="table-header">
+                <h2 class="card-title" style="margin:0">Links</h2>
+                <button class="btn-ghost" onclick="loadLinks()">Refresh</button>
+            </div>
+            <div id="links-container"><p style="color:#475569;font-size:.875rem">Save your API key to load links.</p></div>
+        </div>
+
+    </main>
+
+    <script>
+        const API_KEY_STORAGE = 'willinks_api_key';
+
+        function getKey() { return localStorage.getItem(API_KEY_STORAGE) || ''; }
+
+        function saveKey() {
+            const key = document.getElementById('apiKey').value.trim();
+            if (!key) { setStatus('key-status', 'Enter a key.', true); return; }
+            localStorage.setItem(API_KEY_STORAGE, key);
+            setStatus('key-status', 'Saved!', false);
+            loadLinks();
+        }
+
+        function setStatus(id, msg, isError) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'status ' + (isError ? 'error' : 'success');
+        }
+
+        let toastTimer = null;
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+        }
+
+        function updateStats(links) {
+            const now = Date.now();
+            const week = 7 * 24 * 60 * 60 * 1000;
+            document.getElementById('stat-total').textContent = links.length;
+            document.getElementById('stat-clicks').textContent = links.reduce((s, l) => s + (l.clickCount || 0), 0);
+            document.getElementById('stat-expiring').textContent = links.filter(l => {
+                if (!l.expiresAt) return false;
+                const exp = new Date(l.expiresAt).getTime();
+                return exp > now && exp - now <= week;
+            }).length;
+        }
+
+        function resetStats() {
+            ['stat-total', 'stat-clicks', 'stat-expiring'].forEach(id => {
+                document.getElementById(id).textContent = '—';
+            });
+        }
+
+        async function apiFetch(path, options = {}) {
+            const key = getKey();
+            const res = await fetch(path, {
+                ...options,
+                headers: { 'Content-Type': 'application/json', 'X-Api-Key': key, ...(options.headers || {}) }
+            });
+            return res;
+        }
+
+        async function loadLinks() {
+            const container = document.getElementById('links-container');
+            container.innerHTML = '<p style="color:#475569;font-size:.875rem">Loading…</p>';
+            try {
+                const res = await apiFetch('/api/links');
+                if (!res.ok) {
+                    container.innerHTML = `<p class="error">Error ${res.status}: ${res.statusText}</p>`;
+                    resetStats();
+                    return;
+                }
+                const links = await res.json();
+                updateStats(links);
+                if (!links.length) {
+                    container.innerHTML = '<p style="color:#475569;font-size:.875rem">No links yet.</p>';
+                    return;
+                }
+                const origin = window.location.origin;
+                container.innerHTML = `
+                    <table>
+                        <thead><tr><th>Slug</th><th>Destination</th><th>Clicks</th><th>Expires</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            ${links.map(l => `
+                                <tr>
+                                    <td><a href="${origin}/${l.slug}" target="_blank">${l.slug}</a></td>
+                                    <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${l.destination}">${l.destination}</td>
+                                    <td>${l.clickCount}</td>
+                                    <td>${l.expiresAt ? new Date(l.expiresAt).toLocaleDateString() : '—'}</td>
+                                    <td style="white-space:nowrap">
+                                        <button class="btn-ghost" onclick="copyLink('${origin}/${l.slug}')">Copy</button>
+                                        <button class="btn-danger" onclick="deleteLink('${l.slug}')">Delete</button>
+                                    </td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>`;
+            } catch (e) {
+                container.innerHTML = `<p class="error">Failed to load links: ${e.message}</p>`;
+                resetStats();
+            }
+        }
+
+        async function createLink() {
+            const destination = document.getElementById('destination').value.trim();
+            const slug = document.getElementById('slug').value.trim() || null;
+            const expiresAtRaw = document.getElementById('expiresAt').value;
+            const expiresAt = expiresAtRaw ? new Date(expiresAtRaw).toISOString() : null;
+
+            if (!destination) { setStatus('create-status', 'Destination is required.', true); return; }
+
+            try {
+                const res = await apiFetch('/api/links', {
+                    method: 'POST',
+                    body: JSON.stringify({ destination, slug, expiresAt })
+                });
+                if (!res.ok) {
+                    const text = await res.text();
+                    setStatus('create-status', `Error ${res.status}: ${text}`, true);
+                    return;
+                }
+                const created = await res.json();
+                setStatus('create-status', `Created: ${window.location.origin}/${created.slug}`, false);
+                document.getElementById('destination').value = '';
+                document.getElementById('slug').value = '';
+                document.getElementById('expiresAt').value = '';
+                loadLinks();
+            } catch (e) {
+                setStatus('create-status', `Failed: ${e.message}`, true);
+            }
+        }
+
+        async function deleteLink(slug) {
+            if (!confirm(`Delete /${slug}?`)) return;
+            try {
+                const res = await apiFetch(`/api/links/${slug}`, { method: 'DELETE' });
+                if (!res.ok) { showToast(`Error ${res.status}`); return; }
+                loadLinks();
+            } catch (e) {
+                showToast(`Failed: ${e.message}`);
+            }
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => showToast('Link copied!'));
+        }
+
+        // Pre-fill API key from storage
+        const saved = getKey();
+        if (saved) {
+            document.getElementById('apiKey').value = saved;
+            loadLinks();
+        }
+    </script>
+</body>
+</html>
