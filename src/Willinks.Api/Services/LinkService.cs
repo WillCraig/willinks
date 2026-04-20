@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using Dapper;
-using Npgsql;
+using Microsoft.Data.Sqlite;
 using Willinks.Api.Models;
 
 namespace Willinks.Api.Services;
 
 public class LinkService(string connectionString)
 {
-    private NpgsqlConnection Connect() => new(connectionString);
+    private SqliteConnection Connect() => new(connectionString);
 
     public async Task<Link?> GetBySlugAsync(string slug)
     {
@@ -27,15 +27,17 @@ public class LinkService(string connectionString)
     public async Task<Link> CreateAsync(CreateLinkRequest request)
     {
         string slug = request.Slug ?? await GenerateUniqueSlugAsync();
+        string id = Guid.NewGuid().ToString();
+        string createdAt = DateTime.UtcNow.ToString("o");
 
         await using var conn = Connect();
         return await conn.QuerySingleAsync<Link>(
             """
-            INSERT INTO links (slug, destination, expires_at)
-            VALUES (@slug, @destination, @expiresAt)
+            INSERT INTO links (id, slug, destination, expires_at, created_at, click_count)
+            VALUES (@id, @slug, @destination, @expiresAt, @createdAt, 0)
             RETURNING id, slug, destination, created_at as CreatedAt, expires_at as ExpiresAt, click_count as ClickCount
             """,
-            new { slug, destination = request.Destination, expiresAt = request.ExpiresAt });
+            new { id, slug, destination = request.Destination, expiresAt = request.ExpiresAt, createdAt });
     }
 
     public async Task<bool> DeleteAsync(string slug)
