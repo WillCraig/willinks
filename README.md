@@ -1,6 +1,6 @@
 # Willinks
 
-![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
+![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet)
 
 > A self-hosted personal URL shortener with click tracking and expiration.
 
@@ -37,6 +37,12 @@ Set the following GitHub Actions secrets:
 
 On the droplet, environment variables (`DATABASE_URL`, `API_KEY`) should be set in the systemd service unit or a sourced env file.
 
+Production routing is split intentionally:
+
+- `links.willc.pro` proxies directly to the Willinks app for the admin UI
+- `willc.pro` serves the primary site from `/var/www/jekyll` first
+- requests on `willc.pro` that do not match a real static page fall through to Willinks so `/{slug}` shortlinks still work
+
 ---
 
 ## Local Development
@@ -49,7 +55,20 @@ sqlite3 willinks.db < deploy/willinks.db.sql
 dotnet run --project src/Willinks.Api
 ```
 
-The app will be available at `http://localhost:5000`.
+In development, the app falls back to:
+
+- `DATABASE_URL=Data Source=willinks.db`
+- `API_KEY=dev-secret`
+
+That means no extra env export is required for the normal local workflow. The app will be available at `http://localhost:5000`.
+
+### Testing
+
+```bash
+dotnet test
+```
+
+The integration tests create their own temporary SQLite database, apply `deploy/willinks.db.sql`, and inject test configuration automatically. Your local `willinks.db` and `.env` are not required for the test suite.
 
 ---
 
@@ -89,7 +108,7 @@ All write endpoints require the `X-Api-Key` header.
 
 ## Tech Stack
 
-- **Runtime**: .NET 10
+- **Runtime**: .NET 9
 - **Database**: SQLite (self-contained, file-based)
 - **ORM**: Dapper
 - **Frontend**: Vanilla JS (no build step)

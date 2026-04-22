@@ -3,8 +3,13 @@ using Willinks.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration["DATABASE_URL"]
-    ?? throw new InvalidOperationException("DATABASE_URL is not configured.");
+var connectionString = builder.Configuration["DATABASE_URL"];
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    connectionString = builder.Environment.IsDevelopment()
+        ? "Data Source=willinks.db"
+        : throw new InvalidOperationException("DATABASE_URL is not configured.");
+}
 
 // Convert postgres:// URI to Npgsql key=value format if needed
 if (connectionString.StartsWith("postgresql://") || connectionString.StartsWith("postgres://"))
@@ -52,12 +57,19 @@ app.MapRedirectEndpoints();
 
 app.Run();
 
+public partial class Program;
+
 // Inline filter to keep it simple
 class ApiKeyFilter(IConfiguration configuration) : IEndpointFilter
 {
     public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
         var expectedKey = configuration["API_KEY"];
+        if (string.IsNullOrEmpty(expectedKey) && context.HttpContext.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment())
+        {
+            expectedKey = "dev-secret";
+        }
+
         if (string.IsNullOrEmpty(expectedKey))
             return Results.StatusCode(500);
 
