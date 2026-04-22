@@ -1,5 +1,7 @@
-# Add this file to your willc-personalsite repo at:
-# .github/workflows/deploy.yml
+# Reference workflow only.
+# The production source of truth for the primary site deploy lives in
+# ../willc-personalsite/.github/workflows/deploy.yml and publishes to
+# /var/www/jekyll so Caddy can serve the site before Willinks fallthrough.
 
 name: Deploy Jekyll Site
 

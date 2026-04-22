@@ -37,10 +37,11 @@ Set the following GitHub Actions secrets:
 
 On the droplet, environment variables (`DATABASE_URL`, `API_KEY`) should be set in the systemd service unit or a sourced env file.
 
-Production routing is split intentionally:
+Production routing is split intentionally across two repos:
 
+- `willc-personalsite` builds and deploys the primary site into `/var/www/jekyll`
 - `links.willc.pro` proxies directly to the Willinks app for the admin UI
-- `willc.pro` serves the primary site from `/var/www/jekyll` first
+- `willc.pro` serves the primary site from `/var/www/jekyll` first, including clean URLs that map to `index.html` files
 - requests on `willc.pro` that do not match a real static page fall through to Willinks so `/{slug}` shortlinks still work
 
 ---

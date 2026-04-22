@@ -5,15 +5,20 @@ links.willc.pro {
 
 # Main domain (public redirects)
 willc.pro {
-    # Serve Jekyll static files if they exist on disk
+    # Serve the primary site deployed by the willc-personalsite repo.
     root * /var/www/jekyll
 
-    @static file
+    # Let the static site win for direct assets, directories, and clean URLs
+    # like /blog/my-post by checking for an index file before falling back.
+    @static file {
+        try_files {path} {path}/ {path}/index.html
+    }
+
     handle @static {
         file_server
     }
 
-    # Everything else goes to Willinks (.NET app)
+    # Everything else goes to Willinks for shortlink redirects.
     handle {
         reverse_proxy localhost:5000
     }
