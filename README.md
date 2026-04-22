@@ -71,6 +71,18 @@ dotnet test
 
 The integration tests create their own temporary SQLite database, apply `deploy/willinks.db.sql`, and inject test configuration automatically. Your local `willinks.db` and `.env` are not required for the test suite.
 
+### Quick Checks
+
+Once the app is running, these are useful smoke tests:
+
+```bash
+curl http://localhost:5000/healthz
+curl -H 'Host: links.willc.pro' http://127.0.0.1:5000/
+curl -i -H 'Host: willc.pro' http://127.0.0.1:5000/gh
+```
+
+Fresh databases are seeded with a default `gh` shortlink that redirects to `https://github.com/WillCraig`.
+
 ---
 
 ## Configuration

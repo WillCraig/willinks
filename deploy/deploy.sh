@@ -14,7 +14,8 @@ if [ ! -f "$DB_FILE" ]; then
     sqlite3 "$DB_FILE" < "$REPO_DIR/deploy/willinks.db.sql"
     echo ">>> Database created at $DB_FILE"
 else
-    echo ">>> Database already exists, skipping init"
+    echo ">>> Database already exists, applying schema and seed"
+    sqlite3 "$DB_FILE" < "$REPO_DIR/deploy/willinks.db.sql"
 fi
 
 echo ">>> Building..."
