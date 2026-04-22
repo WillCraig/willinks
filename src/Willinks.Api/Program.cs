@@ -33,6 +33,8 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
+app.MapGet("/willinkshealth", () => Results.Ok(new { status = "ok" }));
+
 // Middleware to detect subdomain and route accordingly
 app.Use(async (context, next) =>
 {

@@ -39,6 +39,38 @@ public class WillinksApiTests
     }
 
     [Fact]
+    public async Task WillinksHealth_ReturnsOk()
+    {
+        await using var factory = await TestApplicationFactory.CreateAsync();
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("http://willc.pro")
+        });
+
+        var response = await client.GetAsync("/willinkshealth");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("ok", body);
+    }
+
+    [Fact]
+    public async Task SeedLink_IsAvailableInFreshDatabase()
+    {
+        await using var factory = await TestApplicationFactory.CreateAsync();
+        using var redirectClient = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            BaseAddress = new Uri("http://willc.pro"),
+            AllowAutoRedirect = false
+        });
+
+        var response = await redirectClient.GetAsync("/gh");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("https://github.com/WillCraig", response.Headers.Location?.ToString());
+    }
+
+    [Fact]
     public async Task ApiEndpoints_RequireApiKey()
     {
         await using var factory = await TestApplicationFactory.CreateAsync();
@@ -74,6 +106,7 @@ public class WillinksApiTests
         var links = await listResponse.Content.ReadFromJsonAsync<List<Link>>();
         Assert.NotNull(links);
         Assert.Contains(links, link => link.Slug == "integration-test");
+        Assert.Contains(links, link => link.Slug == "gh");
 
         using var redirectClient = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
